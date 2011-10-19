@@ -136,9 +136,9 @@ public class Main extends JavaPlugin{
 	    	if (playa.hasPermission("WorldFeatures.commands") || playa.isOp()){
 		    	if(args.length == 1 && args[0] != null && args[0] != "") {
 		
-					if(point1.get(playa)!=null){
-		    			if(point2.get(playa)!=null){
-		    	    		Configuration cusLoad=customLoad(args[0]);
+					if(point1.get(playa) != null){
+		    			if(point2.get(playa) != null){
+		    	    		Configuration cusLoad = customLoad(args[0]);
 		    	    		int loc1X=point1.get(playa).getBlockX() , loc1Y=point1.get(playa).getBlockY() , loc1Z=point1.get(playa).getBlockZ(),
 		    	    		    loc2X=point2.get(playa).getBlockX() , loc2Y=point2.get(playa).getBlockY() , loc2Z=point2.get(playa).getBlockZ();
 		    	    		
@@ -156,6 +156,8 @@ public class Main extends JavaPlugin{
 		    	    		cusLoad.setProperty("info.basement", 0);
 		    	    		cusLoad.setProperty("info.min", 1);
 		    	    		cusLoad.setProperty("info.max", 126);
+		    	    		cusLoad.setProperty("info.randomrotate", true);
+		    	    		cusLoad.setProperty("info.biome", "none");
 		    	    		
 		    	    		cusLoad.save();
 		    	    		
@@ -178,10 +180,11 @@ public class Main extends JavaPlugin{
 		    	}
 		    	
 		    	else if(args.length == 2 && args[0] != null && args[0] != "" && args[1] != null && args[1] != "") {
-		    		if(args[0].startsWith("c")||args[0].startsWith("C")){
+		    		if(args[0].startsWith("c") || args[0].startsWith("C")){
 		    			try {
-							Files.copy(new File ("plugins/WorldFeatures/Created/"+args[1]+".yml").toPath(), new File ("plugins/WorldFeatures/ToUse/"+args[1]+".yml").toPath(), REPLACE_EXISTING);
-							Files.copy(new File ("plugins/WorldFeatures/Created/"+args[1]+".schematic").toPath(), new File ("plugins/WorldFeatures/ToUse/"+args[1]+".schematic").toPath(), REPLACE_EXISTING);
+		    				new File("plugins/WorldFeatures/ToUse/"+playa.getWorld().getName()).mkdir();
+							Files.copy(new File ("plugins/WorldFeatures/Created/"+args[1]+".yml").toPath(), new File ("plugins/WorldFeatures/ToUse/"+playa.getWorld().getName()+"/"+args[1]+".yml").toPath(), REPLACE_EXISTING);
+							Files.copy(new File ("plugins/WorldFeatures/Created/"+args[1]+".schematic").toPath(), new File ("plugins/WorldFeatures/ToUse/"+playa.getWorld().getName()+"/"+args[1]+".schematic").toPath(), REPLACE_EXISTING);
 							playa.sendMessage(ChatColor.YELLOW+"Successfully copied "+args[1]+".");
 						} catch (IOException e) {
 							playa.sendMessage(ChatColor.YELLOW+"Something went wrong!");

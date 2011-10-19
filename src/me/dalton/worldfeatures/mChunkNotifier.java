@@ -22,7 +22,7 @@ import com.sk89q.worldedit.data.DataException;
 
 @SuppressWarnings("deprecation")
 public final class mChunkNotifier extends WorldListener {
-	Random rand=new Random();
+	Random rand = new Random();
 	private File myfile;
 	private Chunk chunky;
 	private int bHeight;
@@ -34,7 +34,9 @@ public final class mChunkNotifier extends WorldListener {
 	static Configuration settings;
 	//private boolean loadedFromRAM = false;
 	
-	static{settings = load2();}
+	public mChunkNotifier(){
+		settings = load2();
+	}
 	
 	public Configuration load(String s) {
 		myfile= new File("plugins/WorldFeatures/ToUse/"+s);
@@ -46,15 +48,9 @@ public final class mChunkNotifier extends WorldListener {
 	
 	public static final File myfile2= new File("plugins/WorldFeatures/Settings.yml");
 	public static Configuration load2() {
-		try {
-            Configuration PluginPropConfig = new Configuration(myfile2);
-            PluginPropConfig.load();
-            return PluginPropConfig;
-
-        } catch (Exception e) {
-        	
-        }
-        return null;
+        Configuration PluginPropConfig = new Configuration(myfile2);
+        PluginPropConfig.load();
+        return PluginPropConfig;
 	}
 	
     private void loadArea(World world , Vector origin){
@@ -85,21 +81,36 @@ public final class mChunkNotifier extends WorldListener {
 		return false;
 	}
 	
+	public boolean cornerBlocksBiome(String biomeType){
+		if(loadBlockChunk(randX       , bHeight , randZ)       .getBiome().toString().equals(biomeType)
+		 &&loadBlockChunk(randX+width , bHeight , randZ)       .getBiome().toString().equals(biomeType)
+		 &&loadBlockChunk(randX       , bHeight , randZ+bredth).getBiome().toString().equals(biomeType)
+		 &&loadBlockChunk(randX+width , bHeight , randZ+bredth).getBiome().toString().equals(biomeType))
+			return true;
+		return false;
+	}
+	
 	public void onChunkPopulate(ChunkPopulateEvent event) {
 		
 		if(rand.nextInt(100)+1 > settings.getInt("chunkchance", 5))
 			return;
 		
-		String[]children = new File("plugins/WorldFeatures/ToUse").list();
+		chunky = event.getChunk();
+		chunkX = chunky.getX()*16;
+		chunkZ = chunky.getZ()*16;
+		wrld = chunky.getWorld();
+		
+		String[]children = new File("plugins/WorldFeatures/ToUse/" + wrld.getName()).list();
 		ArrayList<String> schemes = new ArrayList<String>();
 		ArrayList<String> configs = new ArrayList<String>();
 
-		for(int ab = 0 ; ab<children.length ; ab++){
-			if(children[ab].substring(children[ab].indexOf('.')+1).equals("schematic"))
-				schemes.add(children[ab]);
-			else if(children[ab].substring(children[ab].indexOf('.')+1).equals("yml"))
-				configs.add(children[ab]);
-		}
+		if(children != null)
+			for(int ab = 0 ; ab<children.length ; ab++){
+				if(children[ab].substring(children[ab].indexOf('.')+1).equals("schematic"))
+					schemes.add(children[ab]);
+				else if(children[ab].substring(children[ab].indexOf('.')+1).equals("yml"))
+					configs.add(children[ab]);
+			}
 		
 		if (!(schemes != null && schemes.size()>0))
 			return;
@@ -107,7 +118,7 @@ public final class mChunkNotifier extends WorldListener {
 	    List<Integer> chosen = new ArrayList<Integer>();
 	    
     	for(int x=0;x<configs.size();x++){
-    		File fi= new File("plugins/WorldFeatures/ToUse/"+configs.get(x));
+    		File fi= new File("plugins/WorldFeatures/ToUse/" + wrld.getName() + "/" + configs.get(x));
     	    Configuration Config = new Configuration(fi);
     	    Config.load();
     	    if(rand.nextInt(100)+1 <= Config.getDouble("info.chance", 50)){
@@ -120,15 +131,12 @@ public final class mChunkNotifier extends WorldListener {
     	
 		int haylea = chosen.get(rand.nextInt(chosen.size()));
 		String schemeToConfig = schemes.get(haylea).substring(0 , schemes.get(haylea).indexOf('.'))+".yml";
-    	Configuration derp = load(schemeToConfig);
+    	Configuration derp = load(wrld.getName() + "/" + schemeToConfig);
     	
 	    randX = rand.nextInt(16);
 	    randZ = rand.nextInt(16);
 	    boolean canSpawn = true;
-		chunky = event.getChunk();
-		chunkX = chunky.getX()*16;
-		chunkZ = chunky.getZ()*16;
-		wrld = chunky.getWorld();
+
 		
     	int maxspawns = derp.getInt("info.maxspawns", 0);
     	
@@ -141,29 +149,36 @@ public final class mChunkNotifier extends WorldListener {
     	//}
     	//else{
     		try {
-				cc = CuboidClipboard.loadSchematic(new File("plugins/WorldFeatures/ToUse/"+schemes.get(haylea)));
+				cc = CuboidClipboard.loadSchematic(new File("plugins/WorldFeatures/ToUse/"+wrld.getName()+"/"+schemes.get(haylea)));
 			} catch (DataException e) {e.printStackTrace();} catch (IOException e) {e.printStackTrace();}
     	//}
     	
-    	rotation = rand.nextInt(4)*90;
-    	cc.rotate2D(rotation);
+    	width  = cc.getWidth();
+		bredth = cc.getLength();
+		
+    	if(derp.getBoolean("info.randomrotate", true)){
+        	rotation = rand.nextInt(4)*90;
+    		cc.rotate2D(rotation);
     	
-    	switch(rotation){
-	    	case 0:
-	    		width  = cc.getWidth();
-				bredth = cc.getLength(); break;
-	    	case 90:
-	    		width  = 0 - cc.getWidth();
-				bredth = cc.getLength(); break;
-	    	case 180:
-	    		width  = 0 - cc.getWidth();
-				bredth = 0 - cc.getLength(); break;
-	    	case 270:
-				width  = cc.getWidth();
-				bredth = 0 - cc.getLength(); break;
+	    	switch(rotation){
+		    	case 90:
+		    		width  = 0 - cc.getWidth();
+					bredth = cc.getLength(); break;
+		    	case 180:
+		    		width  = 0 - cc.getWidth();
+					bredth = 0 - cc.getLength(); break;
+		    	case 270:
+					width  = cc.getWidth();
+					bredth = 0 - cc.getLength(); break;
+	    	}
     	}
 
 		height = cc.getHeight();
+	    
+		if(!derp.getString("info.biome" , "none").equals("none")){
+		    if(!cornerBlocksBiome(derp.getString("info.biome" , "PLAINS")))
+		    	return;
+		}
 	    
 	    String place = derp.getString("info.place","ground");
 		
