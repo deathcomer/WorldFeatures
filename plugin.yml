@@ -1,0 +1,18 @@
+name: WorldFeatures
+main: me.dalton.worldfeatures.Main
+version: 1.82
+author: dkramer
+load: startup
+depend: [WorldEdit]
+description: Generates .schematics into generated chunks.
+website: http://dev.bukkit.org/server-mods/pickacard/
+commands:
+    wf:
+        description: Use this to display the other commands.
+        usage: /wf
+    worldfeatures:
+        description: Use this to display the other commands.
+        usage: /worldfeatures
+permissions:
+    WorldFeatures.commands:
+        description: Gives permission to use every command.
